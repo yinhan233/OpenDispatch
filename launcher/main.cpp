@@ -126,10 +126,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Parse CLI flags
-    bool openBrowserAfterStart = true;
-    bool launchDesktopClient   = false;
+    //   (default)      launch the native desktop client (logistics_ui)
+    //   --browser      open the web UI in the default browser instead
+    //   --desktop      force desktop client (same as default)
+    //   --no-browser   don't open browser (kept for backward compatibility)
+    bool openBrowserAfterStart = false;
+    bool launchDesktopClient   = true;
     for (int i = 1; i < argc; ++i) {
         QString arg(argv[i]);
+        if (arg == "--browser")    { launchDesktopClient = false; openBrowserAfterStart = true; }
         if (arg == "--no-browser") openBrowserAfterStart = false;
         if (arg == "--desktop")    { launchDesktopClient = true; openBrowserAfterStart = false; }
     }
@@ -157,7 +162,7 @@ int main(int argc, char* argv[]) {
                 << "-jar" << jarPath;
 
         g_backend = new QProcess(&app);
-        g_backend->setProcessChannelMode(QProcess::ForwardedChannels);
+        g_backend->setProcessChannelMode(QProcess::MergedChannels);
         g_backend->start(jrePath, jvmArgs);
 
         if (!g_backend->waitForStarted(10000)) {
@@ -171,13 +176,15 @@ int main(int argc, char* argv[]) {
             waited += 500;
         }
         if (waited >= STARTUP_TIMEOUT) {
-            log("Backend startup timeout. Backend stderr:");
-            log(g_backend->readAllStandardError());
-            killBackend();
-            fatalError("启动超时", "后端启动超时（30秒），请查看日志文件:\n" + logPath);
-            return 1;
+            // Non-fatal: the backend process may still be starting up.
+            // Launch the UI anyway so the user sees a window; the client
+            // retries API calls on its own once the backend is ready.
+            log("WARNING: Backend readiness probe timed out (30s). Backend output:");
+            log(QString::fromLocal8Bit(g_backend->readAllStandardOutput()));
+            log("Continuing to launch UI; backend may still come up.");
+        } else {
+            log(QString("Backend ready (http://localhost:%1)").arg(BACKEND_PORT));
         }
-        log(QString("Backend ready (http://localhost:%1)").arg(BACKEND_PORT));
     } else {
         log("Backend already running.");
     }

@@ -30,3 +30,4 @@ nohup.out
 # CMake extras
 CMakeUserPresets.json
 compile_commands.json
+dist.7z

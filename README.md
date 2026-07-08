@@ -71,8 +71,14 @@ aqt install-qt all_os  wasm    6.8.0 wasm_singlethread -O ~/Qt   # 网页版用
 git clone --depth=1 https://github.com/emscripten-core/emsdk ~/emsdk
 ~/emsdk/emsdk install 3.1.56 && ~/emsdk/emsdk activate 3.1.56
 
+# Windows 交叉编译器（须为 msvcrt 版！见下方注意事项）
+# Arch: yay -S mingw-w64-headers-msvcrt mingw-w64-crt-msvcrt \
+#              mingw-w64-gcc-msvcrt mingw-w64-winpthreads-msvcrt
+
 # 还需要本机安装 JDK 17+（用于 jlink 生成精简 JRE）与 CMake
 ```
+
+> **Windows 交叉编译注意事项**：aqt 下载的 Qt 6.8（win64_mingw）编译时链接的是 **msvcrt**（旧版 Microsoft C 运行时）。若用系统默认的 **UCRT** 版 MinGW-w64 工具链交叉编译，产出的 exe 会链接 api-ms-win-crt（新版运行时），与 Qt 的 msvcrt 堆不互通，运行即 STATUS_HEAP_CORRUPTION（0xC0000374）崩溃。因此须安装 **msvcrt 版 MinGW-w64**（如 Arch 的 `mingw-w64-gcc-msvcrt` 等包），它与系统默认的 UCRT 版互相冲突、只能二选一。Linux 原生编译与 WASM 不受此影响。
 
 **执行打包**：
 

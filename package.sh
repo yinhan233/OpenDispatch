@@ -10,14 +10,24 @@
 # Qt client instead.
 #
 # Prerequisites (one-time setup):
+#   # Qt6 (desktop + WASM targets)
 #   pip install aqtinstall                  # or: python3 -m venv ~/.venv-aqt && pip install aqtinstall
 #   aqt install-qt windows desktop 6.8.0 win64_mingw -O ~/Qt
 #   aqt install-qt linux   desktop 6.8.0 linux_gcc_64 -O ~/Qt   # host moc/rcc/uic
 #   aqt install-qt all_os  wasm 6.8.0 wasm_singlethread -O ~/Qt  # WebAssembly target
+#
+#   # Emscripten (for WASM)
 #   git clone --depth=1 https://github.com/emscripten-core/emsdk ~/emsdk
 #   ~/emsdk/emsdk install 3.1.56 && ~/emsdk/emsdk activate 3.1.56
+#
+#   # Windows cross-compiler (MUST be the msvcrt variant; Qt 6.8 win64_mingw is msvcrt)
+#   # On Arch: yay -S mingw-w64-headers-msvcrt mingw-w64-crt-msvcrt
+#   #                mingw-w64-gcc-msvcrt mingw-w64-winpthreads-msvcrt
+#   # (this replaces the default UCRT mingw-w64-* packages)
+#
 #   # Windows JDK (as JRE): download from https://adoptium.net/temurin/releases/?version=26&os=windows
 #   # Linux JRE via jlink (see ensure_jre_linux below)
+#
 #   # appimagetool + linuxdeploy in ~/.local/bin (see fetch_appimage_tools below)
 #
 # Usage:
@@ -153,6 +163,39 @@ assemble_windows() {
         warn "wine or windeployqt.exe not found; skipping Qt DLL deployment."
         warn "Run windeployqt on a Windows host, or copy Qt6*.dll from $QT_WIN/bin manually."
     fi
+
+    # windeployqt --compiler-runtime ships the MinGW runtime that *Qt* was
+    # built with (~GCC 13.1).  Our exes are cross-compiled with the system
+    # MinGW (x86_64-w64-mingw32-g++, GCC 16).  Shipping the older libstdc++
+    # causes STATUS_HEAP_CORRUPTION (0xC0000374) on the target machine.
+    # Overwrite with the runtime matching *our* cross-compiler.
+    #
+    # IMPORTANT: the system cross-compiler MUST be the msvcrt variant
+    # (mingw-w64-gcc-msvcrt on Arch), not the default UCRT variant.
+    # Qt 6.8 win64_mingw is an msvcrt build; a UCRT cross-compiler
+    # produces exes that link against the wrong C runtime, leading to
+    # the same heap corruption.
+    step "Fixing MinGW runtime DLLs to match cross-compiler..."
+    local MINGW_BIN=""
+    for cand in \
+        "$(dirname "$(command -v x86_64-w64-mingw32-g++ 2>/dev/null)")/../x86_64-w64-mingw32/bin" \
+        /usr/x86_64-w64-mingw32/bin \
+        /usr/lib/gcc/x86_64-w64-mingw32/*/; do
+        if [ -f "$cand/libstdc++-6.dll" ]; then MINGW_BIN="$cand"; break; fi
+    done
+    if [ -n "$MINGW_BIN" ]; then
+        for dll in libstdc++-6.dll libgcc_s_seh-1.dll libwinpthread-1.dll; do
+            if [ -f "$MINGW_BIN/$dll" ]; then
+                cp -f "$MINGW_BIN/$dll" "$DIST_WIN"/
+                info "  runtime: $dll  <-  $MINGW_BIN"
+            else
+                warn "  missing $dll under $MINGW_BIN"
+            fi
+        done
+    else
+        warn "  cross-compiler MinGW runtime not found; kept windeployqt's DLLs (may crash on target)."
+    fi
+
     info "Windows dist ready: $DIST_WIN  ($(du -sh "$DIST_WIN" | cut -f1))"
 }
 
