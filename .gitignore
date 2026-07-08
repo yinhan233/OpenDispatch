@@ -1,0 +1,32 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build
+target/
+build/
+build-*/
+bin/
+dist/
+AppDir/
+*.AppImage
+
+# Bundled JREs (too large for git; provisioned by package.sh)
+jre/
+
+# env / secrets
+.env
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+nohup.out
+
+# CMake extras
+CMakeUserPresets.json
+compile_commands.json

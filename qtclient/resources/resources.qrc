@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icon/电瓶车.png</file>
+        <file>icon/三轮车.png</file>
+        <file>icon/微型面包车.png</file>
+        <file>icon/厢式货车.png</file>
+        <file>icon/吉普车.png</file>
+        <file>icon/平板卡车.png</file>
+        <file>icon/冷藏车.png</file>
+        <file>icon/大型重卡.png</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file alias="DejaVuSans.ttf">fonts/DejaVuSans.ttf</file>
+    </qresource>
+</RCC>
