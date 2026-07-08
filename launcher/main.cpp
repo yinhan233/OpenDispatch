@@ -1,5 +1,4 @@
 #include <QProcess>
-#include <QCoreApplication>
 #include <QTimer>
 #include <QThread>
 #include <QNetworkAccessManager>
@@ -8,8 +7,18 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QStandardPaths>
+#include <QFile>
+#include <QTextStream>
+#include <QDateTime>
 #include <iostream>
 #include <cstdlib>
+
+#ifdef Q_OS_WIN
+#include <QApplication>
+#include <QMessageBox>
+#else
+#include <QCoreApplication>
+#endif
 
 static const int    BACKEND_PORT    = 8080;
 static const char*  BACKEND_JAR     = "scheduler-backend.jar";
@@ -17,6 +26,30 @@ static const char*  FRONTEND_BIN    = "logistics_ui";
 static const int    STARTUP_TIMEOUT = 30000;
 
 static QProcess* g_backend = nullptr;
+static QFile*    g_logFile = nullptr;
+
+// ── Logging: writes to both stdout and a log file ──
+static void log(const QString& msg) {
+    QString line = QString("[%1] %2").arg(QDateTime::currentDateTime().toString("HH:mm:ss.zzz"), msg);
+    std::cout << line.toStdString() << std::endl;
+    if (g_logFile && g_logFile->isOpen()) {
+        QTextStream ts(g_logFile);
+        ts << line << "\n";
+        ts.flush();
+    }
+}
+
+#ifdef Q_OS_WIN
+static void fatalError(const QString& title, const QString& msg) {
+    log(QString("FATAL: %1 - %2").arg(title, msg));
+    QMessageBox::critical(nullptr, title, msg);
+    if (g_logFile) g_logFile->close();
+}
+#else
+static void fatalError(const QString& title, const QString& msg) {
+    log(QString("FATAL: %1 - %2").arg(title, msg));
+}
+#endif
 
 static QString findJre() {
     QStringList paths;
@@ -66,20 +99,33 @@ static void killBackend() {
 static void openBrowser() {
     QString url = QString("http://localhost:%1").arg(BACKEND_PORT);
 #ifdef Q_OS_WIN
-        QProcess::startDetached("cmd", QStringList() << "/c" << "start" << url);
+    QProcess::startDetached("cmd", QStringList() << "/c" << "start" << url);
 #else
-        QProcess::startDetached("xdg-open", QStringList() << url);
+    QProcess::startDetached("xdg-open", QStringList() << url);
 #endif
-    std::cout << "[launcher] Browser opened: " << url.toStdString() << std::endl;
+    log("Browser opened: " + url);
 }
 
 int main(int argc, char* argv[]) {
+#ifdef Q_OS_WIN
+    QApplication app(argc, argv);
+#else
     QCoreApplication app(argc, argv);
+#endif
     QCoreApplication::setApplicationName("logistics_launcher");
+    QCoreApplication::setOrganizationName("Logistics");
+
+    // ── 0. Open log file ──
+    QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    if (dataDir.isEmpty()) dataDir = QCoreApplication::applicationDirPath() + "/data";
+    QDir().mkpath(dataDir);
+    QString logPath = dataDir + "/launcher.log";
+    g_logFile = new QFile(logPath, &app);
+    if (g_logFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+        log("=== Launcher started ===");
+    }
 
     // Parse CLI flags
-    // --no-browser: don't auto-open browser (for desktop Qt client users)
-    // --desktop:    launch the Qt desktop client instead of opening browser
     bool openBrowserAfterStart = true;
     bool launchDesktopClient   = false;
     for (int i = 1; i < argc; ++i) {
@@ -88,19 +134,22 @@ int main(int argc, char* argv[]) {
         if (arg == "--desktop")    { launchDesktopClient = true; openBrowserAfterStart = false; }
     }
 
-    // ── 1. Ensure data dir exists ──
-    QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    if (dataDir.isEmpty()) dataDir = QCoreApplication::applicationDirPath() + "/data";
-    QDir().mkpath(dataDir);
-
-    // ── 2. Start backend if not running ──
+    // ── 1. Start backend if not running ──
     if (!isBackendRunning()) {
-        std::cout << "[launcher] Starting backend..." << std::endl;
+        log("Starting backend...");
         QString jarPath = QCoreApplication::applicationDirPath() + "/" + BACKEND_JAR;
         if (!QFileInfo::exists(jarPath)) {
-            std::cerr << "[launcher] ERROR: " << jarPath.toStdString() << " not found" << std::endl;
+            fatalError("启动失败", QString("找不到后端文件:\n%1\n\n请确保程序完整。").arg(jarPath));
             return 1;
         }
+
+        QString jrePath = findJre();
+        if (!QFileInfo::exists(jrePath)) {
+            fatalError("启动失败", QString("找不到 Java 运行时:\n%1").arg(jrePath));
+            return 1;
+        }
+        log("JRE: " + jrePath);
+        log("JAR: " + jarPath);
 
         QStringList jvmArgs;
         jvmArgs << "--enable-native-access=ALL-UNNAMED"
@@ -109,10 +158,10 @@ int main(int argc, char* argv[]) {
 
         g_backend = new QProcess(&app);
         g_backend->setProcessChannelMode(QProcess::ForwardedChannels);
-        g_backend->start(findJre(), jvmArgs);
+        g_backend->start(jrePath, jvmArgs);
 
         if (!g_backend->waitForStarted(10000)) {
-            std::cerr << "[launcher] Failed to start backend." << std::endl;
+            fatalError("启动失败", "后端进程启动失败，请查看日志文件:\n" + logPath);
             return 1;
         }
 
@@ -122,31 +171,38 @@ int main(int argc, char* argv[]) {
             waited += 500;
         }
         if (waited >= STARTUP_TIMEOUT) {
-            std::cerr << "[launcher] Backend startup timeout." << std::endl;
+            log("Backend startup timeout. Backend stderr:");
+            log(g_backend->readAllStandardError());
             killBackend();
+            fatalError("启动超时", "后端启动超时（30秒），请查看日志文件:\n" + logPath);
             return 1;
         }
-        std::cout << "[launcher] Backend ready (http://localhost:" << BACKEND_PORT << ")" << std::endl;
+        log(QString("Backend ready (http://localhost:%1)").arg(BACKEND_PORT));
     } else {
-        std::cout << "[launcher] Backend already running." << std::endl;
+        log("Backend already running.");
     }
 
-    // ── 3. Launch UI ──
+    // ── 2. Launch UI ──
     QProcess* desktopClient = nullptr;
     if (launchDesktopClient) {
-        std::cout << "[launcher] Starting desktop client..." << std::endl;
+        log("Starting desktop client...");
         QString frontendPath = QCoreApplication::applicationDirPath() + "/" + FRONTEND_BIN;
 #ifdef Q_OS_WIN
         frontendPath += ".exe";
 #endif
+        if (!QFileInfo::exists(frontendPath)) {
+            fatalError("启动失败", QString("找不到界面程序:\n%1").arg(frontendPath));
+            killBackend();
+            return 1;
+        }
         desktopClient = new QProcess(&app);
         desktopClient->setProcessChannelMode(QProcess::ForwardedChannels);
         QObject::connect(desktopClient, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            [&]() { QCoreApplication::quit(); });
+            [&](int, QProcess::ExitStatus) { QCoreApplication::quit(); });
         desktopClient->start(frontendPath, QStringList());
 
         if (!desktopClient->waitForStarted(10000)) {
-            std::cerr << "[launcher] Failed to start desktop client: " << frontendPath.toStdString() << std::endl;
+            fatalError("启动失败", QString("界面程序启动失败:\n%1").arg(frontendPath));
             killBackend();
             return 1;
         }
@@ -156,9 +212,9 @@ int main(int argc, char* argv[]) {
 
     int ret = app.exec();
 
-    // ── 4. Cleanup ──
+    // ── 3. Cleanup ──
     killBackend();
-    std::cout << "[launcher] Shutdown complete." << std::endl;
+    log("Shutdown complete.");
+    if (g_logFile) g_logFile->close();
     return ret;
 }
-

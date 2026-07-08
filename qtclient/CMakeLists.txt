@@ -53,6 +53,8 @@ if(EMSCRIPTEN)
     target_link_options(logistics_ui PRIVATE -sASYNCIFY -Os)
     # Increase initial memory (default 50MB may be too small for Qt Widgets)
     set_target_properties(logistics_ui PROPERTIES QT_WASM_INITIAL_MEMORY "150MB")
+elseif(WIN32)
+    target_link_options(logistics_ui PRIVATE -mwindows)
 endif()
 
 install(TARGETS logistics_ui RUNTIME DESTINATION bin)
