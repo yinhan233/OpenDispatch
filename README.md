@@ -43,7 +43,7 @@
 
 我们会把编译好的产物上传到 [Releases](../../releases)：
 
-- **Windows**：下载 `dist/windows` 压缩包，解压后双击 `logistics_launcher_only.exe`。
+- **Windows**：下载 `windows` 压缩包，解压后双击 `logistics_launcher_only.exe`。
 - **Linux**：下载 `LogisticsManager-x86_64.AppImage`，赋予可执行权限后运行：
 
   ```bash
@@ -56,7 +56,7 @@
 
 ### 从源码编译
 
-编译由 `package.sh` 一键完成，可产出 Linux AppImage 与 Windows 发行版。
+现有编译脚本 `package.sh`，可产出 Linux AppImage 与 Windows 发行版。
 
 **一次性环境准备**（详见脚本头部注释）：
 
