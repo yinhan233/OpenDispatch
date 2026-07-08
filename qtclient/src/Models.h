@@ -8,7 +8,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-// ---------- Location ----------
+// 位置
 struct LocationData {
     qulonglong id = 0;
     QString name;
@@ -33,7 +33,7 @@ struct LocationData {
     }
 };
 
-// ---------- Order ----------
+// 订单
 struct OrderData {
     qulonglong id = 0;
     qulonglong taskId = 0;
@@ -81,7 +81,7 @@ struct OrderData {
     }
 };
 
-// ---------- Vehicle ----------
+// 车辆管理
 struct VehicleData {
     qulonglong id = 0;
     QString personId;
@@ -130,7 +130,7 @@ struct VehicleData {
     }
 };
 
-// ---------- Vehicle Type preset ----------
+// 车辆预设
 struct VehicleTypeData {
     QString name;
     double maxWeight = 0.0;
@@ -147,7 +147,7 @@ struct VehicleTypeData {
     }
 };
 
-// ---------- Schedule result ----------
+// 调度结果
 struct RouteLeg {
     int seq = 0;
     qulonglong orderId = 0;

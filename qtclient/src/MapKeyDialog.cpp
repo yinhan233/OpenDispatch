@@ -17,7 +17,7 @@ MapKeyDialog::MapKeyDialog(ApiClient *api, QWidget *parent)
     layout->setContentsMargins(28, 24, 28, 24);
     layout->setSpacing(16);
 
-    //Title
+    // 标题
     auto *titleLabel = new QLabel("腾讯地图 Key 配置");
     titleLabel->setStyleSheet("font-size: 18px; font-weight: 700; color: #1C1917; letter-spacing: -0.3px;");
     layout->addWidget(titleLabel);
@@ -105,7 +105,6 @@ void MapKeyDialog::onLoad() {
                 m_keyEdit->setPlaceholderText("请输入 Key");
                 m_skEdit->setPlaceholderText("请输入 Secret Key");
             }
-            m_pathLabel->setText("配置文件路径: " + obj["path"].toString());
         } else {
             m_statusLabel->setText("  !  无法连接服务器  ");
             m_statusLabel->setStyleSheet(
@@ -135,8 +134,7 @@ void MapKeyDialog::onSave() {
         m_saveBtn->setEnabled(true);
         m_saveBtn->setText("保存");
         if (obj.contains("ok") && obj["ok"].toBool()) {
-            QMessageBox::information(this, "保存成功",
-                "Key/SK 已保存并立即生效。\n配置文件: " + obj["path"].toString());
+            QMessageBox::information(this, "保存成功", "地图 Key 配置已保存。");
             accept();
         } else {
             QMessageBox::warning(this, "保存失败",

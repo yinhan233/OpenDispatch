@@ -13,7 +13,7 @@
 
 static const int    BACKEND_PORT    = 8080;
 static const char*  BACKEND_JAR     = "scheduler-backend.jar";
-static const char*  FRONTEND_BIN    = "logistics_frontend";
+static const char*  FRONTEND_BIN    = "logistics_ui";
 static const int    STARTUP_TIMEOUT = 30000;
 
 static QProcess* g_backend = nullptr;

@@ -5,13 +5,9 @@
 #include <QFont>
 
 namespace Theme {
-
-// ============================================================
-// 色板 — 暖色单色 + 柔和强调色 (编辑风格)
-// ============================================================
 namespace Palette {
-    // 中性色 (暖色调)
-    inline QColor Canvas()       { return QColor("#FAFAF9"); }   // 应用背景 暖白色
+    // 中性色
+    inline QColor Canvas()       { return QColor("#FAFAF9"); }   // 应用背景
     inline QColor Surface()      { return QColor("#FFFFFF"); }   // 卡片表面
     inline QColor SurfaceAlt()   { return QColor("#F5F4F1"); }   // 次表面 / 条纹
     inline QColor Border()       { return QColor("#E7E5E0"); }   // 结构边框
@@ -20,7 +16,7 @@ namespace Palette {
     inline QColor TextSecondary(){ return QColor("#57534E"); }   // 次文本
     inline QColor TextMuted()    { return QColor("#A8A29E"); }   // 弱文本
 
-    // 语义强调 (低饱和度)
+    // 语义强调
     inline QColor Accent()       { return QColor("#1C1917"); }   // 主操作 纯黑
     inline QColor AccentHover()  { return QColor("#3F3F46"); }   // 主操作悬停
     inline QColor Success()      { return QColor("#15803D"); }   // 成功 深绿
@@ -32,7 +28,7 @@ namespace Palette {
     inline QColor Info()         { return QColor("#1F6C9F"); }   // 信息 暗蓝
     inline QColor InfoBg()       { return QColor("#E1F3FE"); }   // 信息底
 
-    // 数据可视化 (柔和)
+    // 数据可视化
     inline QColor Data1()        { return QColor("#1C1917"); }
     inline QColor Data2()        { return QColor("#9F2F2D"); }
     inline QColor Data3()        { return QColor("#15803D"); }

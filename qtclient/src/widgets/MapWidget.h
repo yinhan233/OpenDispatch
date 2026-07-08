@@ -43,12 +43,12 @@ struct AnimVehicleRoute {
     QList<AnimRouteLeg> route;
 };
 
-// A waypoint in a vehicle's animated path: position + time when vehicle arrives
+// 路径点
 struct AnimWaypoint {
     qulonglong locId = 0;
-    QPointF pos;          // lng/lat
-    QDateTime arriveTime; // when vehicle is here
-    QDateTime leaveTime;  // when vehicle departs (after service/idle)
+    QPointF pos;
+    QDateTime arriveTime; 
+    QDateTime leaveTime;
     bool isPickup = false;
     bool isDelivery = false;
     qulonglong orderId = 0;
@@ -70,7 +70,7 @@ public slots:
     void play();
     void pause();
     void reset();
-    void setSpeed(double factor); // 1.0, 2.0, 5.0, 10.0
+    void setSpeed(double factor); 
 
 signals:
     void timeChanged(const QDateTime &t);
@@ -93,14 +93,13 @@ private:
     QHash<qulonglong, AnimVehicle> m_vehicleById;
     QList<AnimVehicleRoute> m_routes;
 
-    // Built from routes + orders + vehicle current loc
-    QList<QList<AnimWaypoint>> m_paths; // per vehicle index aligned with m_activeVehicles
+    QList<QList<AnimWaypoint>> m_paths; 
     QList<qulonglong> m_activeVehicleIds;
 
     QHash<QString, QPixmap> m_iconCache;
     QPixmap m_defaultIcon;
 
-    // Time playback
+    // 播放
     QTimer *m_timer;
     QDateTime m_simStart;
     QDateTime m_simEnd;
@@ -108,9 +107,8 @@ private:
     double m_speedFactor = 5.0;
     bool m_playing = false;
     static const int TickMs = 50;
-    static const double SimSecPerRealSec; // base: 1 real sec = N sim secs
+    static const double SimSecPerRealSec;
 
-    // Map bounds
     double m_minLng = 0, m_maxLng = 0, m_minLat = 0, m_maxLat = 0;
     bool m_boundsValid = false;
 
@@ -125,6 +123,5 @@ private:
     int rightMargin() const;
     int bottomMargin() const;
 
-    // For a given vehicle path and sim time, get interpolated pixel position
     bool vehiclePositionAt(const QList<AnimWaypoint> &path, const QDateTime &t, QPointF &outPixel) const;
 };

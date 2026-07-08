@@ -17,7 +17,7 @@ public:
     void setBaseUrl(const QString &url) { m_baseUrl = url; }
     QString baseUrl() const { return m_baseUrl; }
 
-    // Orders
+    // 订单
     void getOrders(std::function<void(QList<QJsonObject>)> cb);
     void createOrder(const QJsonObject &order, std::function<void(QJsonObject)> cb);
     void createOrdersBatch(const QJsonArray &orders, std::function<void(QJsonArray)> cb);
@@ -25,7 +25,7 @@ public:
     void setOrderStatus(qulonglong id, const QString &status, std::function<void(QJsonObject)> cb);
     void getOrderVehicle(qulonglong id, std::function<void(QJsonObject)> cb);
 
-    // Vehicles
+    // 车辆管理
     void getVehicles(std::function<void(QList<QJsonObject>)> cb);
     void getVehicleTypes(std::function<void(QList<QJsonObject>)> cb);
     void createVehicle(const QJsonObject &vehicle, std::function<void(QJsonObject)> cb);
@@ -34,14 +34,14 @@ public:
     void setVehicleStatus(qulonglong id, const QString &status, std::function<void(QJsonObject)> cb);
     void deleteVehicle(qulonglong id, std::function<void()> cb);
 
-    // Locations
+    // 地址
     void getLocations(std::function<void(QList<QJsonObject>)> cb);
     void createLocation(const QJsonObject &location, std::function<void(QJsonObject)> cb);
     void createLocationsBatch(const QJsonArray &locations, std::function<void(QJsonArray)> cb);
     void geocode(const QString &address, std::function<void(QJsonObject)> cb);
     void deleteLocation(qulonglong id, std::function<void(bool success, const QString &err)> cb);
 
-    // Schedule
+    // 调度
     void triggerSchedule(std::function<void(QJsonObject)> cb);
     void dryRunSchedule(std::function<void(QJsonObject)> cb);
     void debugArcs(std::function<void(QJsonObject)> cb);
@@ -49,10 +49,10 @@ public:
     void dryRunDynamic(std::function<void(QJsonObject)> cb);
     void currentSchedule(std::function<void(QJsonObject)> cb);
 
-    // Dynamic triggers
+    // 动态触发器
     void completeOrder(qulonglong vehicleId, qulonglong orderId, std::function<void()> cb);
 
-    // Config (Map Key/SK)
+    // 设置界面
     void getMapKeyConfig(std::function<void(QJsonObject)> cb);
     void saveMapKeyConfig(const QString &key, const QString &sk, std::function<void(QJsonObject)> cb);
 
@@ -64,9 +64,9 @@ private:
 
     QString m_baseUrl =
 #ifdef __EMSCRIPTEN__
-        "";  // WASM: same-origin (served from the same 8080 port as the API)
+        "";
 #else
-        "http://localhost:8080";  // Desktop: explicit backend URL
+        "http://localhost:8080";
 #endif
     QNetworkAccessManager *m_nam;
 };

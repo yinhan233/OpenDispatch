@@ -11,10 +11,6 @@ int main(int argc, char *argv[]) {
     app.setOrganizationName("Logistics");
 
 #ifdef __EMSCRIPTEN__
-    // Qt WASM's QWasmFontDatabase::populateFontDatabase() auto-loads
-    // ":/fonts/DejaVuSans.ttf" — our WenQuanYi copy renamed to DejaVu Sans.
-    // The default font is "DejaVu Sans" which now maps to our CJK font.
-    // No manual addApplicationFont needed; just use the default font.
     QFont appFont("DejaVu Sans", 10);
 #else
     QFont appFont("Microsoft YaHei", 10);

@@ -62,10 +62,10 @@ build_backend() {
     build_wasm
     step "Embedding WASM web client into server resources..."
     local WEB_RES="server/src/main/resources/web"
-    rm -f "$WEB_RES"/index.html "$WEB_RES"/logistics_frontend.{html,js,wasm} "$WEB_RES"/qtloader.js
-    cp qtclient/build-wasm/bin/logistics_frontend.html "$WEB_RES"/index.html
-    cp qtclient/build-wasm/bin/logistics_frontend.js  "$WEB_RES"/
-    cp qtclient/build-wasm/bin/logistics_frontend.wasm "$WEB_RES"/
+    rm -f "$WEB_RES"/index.html "$WEB_RES"/logistics_ui.{html,js,wasm} "$WEB_RES"/qtloader.js
+    cp qtclient/build-wasm/bin/logistics_ui.html "$WEB_RES"/index.html
+    cp qtclient/build-wasm/bin/logistics_ui.js  "$WEB_RES"/
+    cp qtclient/build-wasm/bin/logistics_ui.wasm "$WEB_RES"/
     cp qtclient/build-wasm/bin/qtloader.js             "$WEB_RES"/ 2>/dev/null || true
     info "WASM artifacts copied to $WEB_RES"
 
@@ -139,8 +139,8 @@ ensure_jre_windows() {
 assemble_windows() {
     step "Assembling Windows dist..."
     rm -rf "$DIST_WIN" && mkdir -p "$DIST_WIN"
-    cp qtclient/build-win/bin/logistics_frontend.exe "$DIST_WIN"/
-    cp launcher/build-win/logistics_launcher.exe "$DIST_WIN"/
+    cp qtclient/build-win/bin/logistics_ui.exe "$DIST_WIN"/
+    cp launcher/build-win/logistics_launcher_only.exe "$DIST_WIN"/
     cp "$JAR" "$DIST_WIN"/scheduler-backend.jar
     cp -r jre/windows "$DIST_WIN"/jre
 
@@ -148,7 +148,7 @@ assemble_windows() {
         step "Running windeployqt (via wine)..."
         (cd "$DIST_WIN" && WINEDEBUG=-all wine "$QT_WIN/bin/windeployqt.exe" \
             --release --no-translations --no-system-d3d-compiler --no-opengl-sw --compiler-runtime \
-            logistics_frontend.exe logistics_launcher.exe) || warn "windeployqt had issues; manual DLL deployment may be needed."
+            logistics_ui.exe logistics_launcher_only.exe) || warn "windeployqt had issues; manual DLL deployment may be needed."
     else
         warn "wine or windeployqt.exe not found; skipping Qt DLL deployment."
         warn "Run windeployqt on a Windows host, or copy Qt6*.dll from $QT_WIN/bin manually."
@@ -182,8 +182,8 @@ assemble_linux_appimage() {
              "$APPDIR/usr/share/applications" \
              "$APPDIR/usr/share/icons/hicolor/256x256/apps"
 
-    cp qtclient/build/bin/logistics_frontend "$APPDIR/usr/bin/"
-    cp launcher/build/logistics_launcher     "$APPDIR/usr/bin/"
+    cp qtclient/build/bin/logistics_ui "$APPDIR/usr/bin/"
+    cp launcher/build/logistics_launcher_only     "$APPDIR/usr/bin/"
     cp "$JAR" "$APPDIR/usr/bin/scheduler-backend.jar"
     cp -r jre/linux "$APPDIR/usr/bin/jre"
 
@@ -194,7 +194,7 @@ Type=Application
 Name=Logistics Manager
 Name[zh_CN]=自由快递人车辆调度系统
 Comment=Vehicle scheduling for freelance courier logistics
-Exec=logistics_launcher
+Exec=logistics_launcher_only
 Icon=logistics_manager
 Terminal=true
 Categories=Office;
@@ -228,7 +228,7 @@ export LD_LIBRARY_PATH="${HERE}/usr/lib:${HERE}/usr/lib/qt6/plugins/platforms:${
 export QT_PLUGIN_PATH="${HERE}/usr/lib/qt6/plugins"
 export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/lib/qt6/plugins/platforms"
 cd "${HERE}/usr/bin"
-exec "${HERE}/usr/bin/logistics_launcher" --desktop "$@"
+exec "${HERE}/usr/bin/logistics_launcher_only" --desktop "$@"
 APPRUN
     chmod +x "$APPDIR/AppRun"
 
