@@ -18,7 +18,7 @@ import java.util.Map;
  *   V+2n+1           = T
  *
  * 边:
- *   S→L_v    容量1, 费用λ·base_v          (车 v 启动一条链)
+ *   S→L_v    容量1, 费用λ·base_v+收益惩罚  (车 v 启动一条链;收益越高惩罚越大)
  *   S→L_j    容量1, 费用=sinkPenaltyLj    (j 作续接起点;阶段1=0,阶段2=M)
  *   S→R_j    容量1, 费用M                 (兜底:j 无前驱,未分配)
  *   L_v→R_j  容量1, 费用=idle(v,j)        (车 v 接 j 作首单)
@@ -76,10 +76,27 @@ public class ArcBuilder {
             o.setESec(o.getASec() + ti.travelTimeSeconds() + o.getServiceSec());
         }
 
-        // 2. S→L_v (车辆启动一条链). 费用 = λ·base_v.
+        // 2. S→L_v (车辆启动一条链).
+        //    费用 = λ·base_v + revenueUnit·max(0, earned_v − avgEarned)  (收益均衡惩罚).
+        //    以全体车辆的平均已获收益为基准: 只惩罚"高于平均"的车,惩罚额 = 超出均值的差值,
+        //    从而 SSP 倾向把新单分给收益≤平均的车,实现个体收益均衡.
+        //    低于/等于平均的车惩罚为0; 全部 earned 相等(含全0)时退化为纯 λ·base_v.
+        //
+        //    惩罚上限 clamp 到 penaltyM/2: 保证 penalty+idle < 兜底费用M.
+        //    这样若某订单只有这一辆(高收益)车可行,覆盖它的最优选择仍是派给该车
+        //    (S→L_v→R_j→T 费用 < S→R_j→T 的 M),而非放弃 → "唯一可行车必派单".
+        double avgEarned = 0;
+        if (!vehicles.isEmpty()) {
+            double sum = 0;
+            for (VehicleView v : vehicles) sum += v.getEarnedRevenue();
+            avgEarned = sum / vehicles.size();
+        }
+        long penaltyCap = penaltyM / 2;
         for (VehicleView v : vehicles) {
             int nodeLv = vehNode.get(v.getVehicleId());
-            long cost = lambda * v.getBaseSegment();
+            long revenuePenalty = Math.round(revenueUnit * Math.max(0, v.getEarnedRevenue() - avgEarned));
+            revenuePenalty = Math.min(revenuePenalty, penaltyCap);
+            long cost = lambda * v.getBaseSegment() + revenuePenalty;
             arcs.add(new Arc(S, nodeLv, 1, cost, Arc.Kind.SOURCE_TO_VEHICLE,
                     v.getVehicleId(), 0, 0));
         }
