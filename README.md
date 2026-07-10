@@ -103,13 +103,7 @@ java -jar target/scheduler-backend-*.jar        # 浏览器访问 http://localho
 cd qtclient && cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
 ```
 
-## 设计理念
+## 实现功能
 
-- **算法与业务解耦**：调度核心是纯粹的最小费用流求解器（`server/.../algorithm/`），
-  与订单、车辆、时间窗等业务概念通过 `ArcBuilder` 建图隔离，算法可独立测试（见 `MinCostFlowTest`）。
-- **一份前端，两种形态**：Qt6 同一套 Widgets 代码既可编译为原生桌面程序，也可编译为 WASM 网页版，
-  网页版被打进后端 JAR，实现“打开即用、无需安装”。
-- **零配置起步、可平滑升级**：默认用嵌入式 H2 单机数据库开箱即用；接入 MySQL 只需设置环境变量，
-  代码无需改动，兼顾课程演示与真实部署。
-- **单文件分发**：launcher + 后端 JAR + 前端 + 精简 JRE 一起打包成 AppImage / exe，
-  用户无需预装 Java 或 Qt 运行库。
+1. 可能会出故障的图形演示,甘特图展示
+2. 基础输入地点，车辆，订单功能
