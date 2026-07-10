@@ -10,19 +10,7 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * 腾讯地图 Key/SK 本地配置文件管理.
- *
- * 文件路径: ~/.logistics_manager/mapkey.json
- * 格式:
- * {
- *   "key": "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
- *   "sk":  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
- * }
- *
- * 启动时优先从文件读取; 文件不存在则用环境变量/系统属性; 都没有则 key 为空(geocode 返回 null).
- * 前端可通过 POST /api/config/mapkey 保存新 key/sk, 会实时写入文件并热更新 GeocoderClient.
- */
+/*配置文件管理*/
 public class MapKeyConfig {
 
     private static final Path CONFIG_DIR = Paths.get(System.getProperty("user.home"), ".logistics_manager");

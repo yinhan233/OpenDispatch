@@ -7,14 +7,7 @@ import io.javalin.http.Context;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * 地图 Key/SK 配置接口.
- *
- * GET  /api/config/mapkey  → {"key":"...", "sk":"", "configured":true/false, "path":"~/.logistics_manager/mapkey.json"}
- *      (SK 不返回完整值, 仅显示是否已配置)
- * POST /api/config/mapkey  body={"key":"...", "sk":"..."}  → 保存到文件并热更新
- *      返回 {"ok":true, "configured":true}
- */
+/** 地图key */
 public class ConfigApi {
     private final MapKeyConfig mapKeyConfig;
 
@@ -47,8 +40,6 @@ public class ConfigApi {
         resp.put("path", mapKeyConfig.getConfigPath().toString());
         ctx.json(resp);
     }
-
-    /** 脱敏显示: 前四位 + **** + 后四位. */
     private String maskKey(String key) {
         if (key.length() <= 8) return "****";
         return key.substring(0, 4) + "****" + key.substring(key.length() - 4);

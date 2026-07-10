@@ -10,16 +10,7 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * 调度服务:从DB加载未分配订单与可用车辆,构建网络,求最小费用流,落库.
- * 纯 JDBC,无 Spring 依赖.
- *
- * 动态调度(M6):
- *   - 冻结集 = PLANNED/EXECUTING 路线上的订单(已锁定,不进新求解)
- *   - 车辆初始状态 = 冻结路线末单的 delivery_loc + planned_end(而非 vehicle 表)
- *   - 新求解仅含 UNASSIGNED 订单 + 可用车辆(IDLE 或 ON_DUTY 但可加单)
- *   - 重解后,新路线落库,旧路线状态推进至 EXECUTING(可选)
- */
+/*调度*/
 public class ScheduleService {
 
     private final OrderDao orderDao;
@@ -73,22 +64,14 @@ public class ScheduleService {
         return out;
     }
 
-    /**
-     * 静态调度(忽略冻结集):从全量 UNASSIGNED 订单与 IDLE 车辆开始求解.
-     * 适用于首次调度或清空重解.
-     */
+    /**静态调度:从全量 UNASSIGNED 订单与 IDLE 车辆开始求解.适用于首次调度或清空重解.*/
     public ScheduleResult schedule() throws Exception {
         List<OrderView> orderViews = loadUnassignedOrderViews();
         List<VehicleView> vehicleViews = loadIdleVehicleViews();
         return solveAndBuild(orderViews, vehicleViews);
     }
 
-    /**
-     * 动态调度(rolling horizon):考虑冻结集,仅在未冻结订单与可用车辆上求解.
-     *  - 冻结订单:已 ASSIGN 且属于 PLANNED/EXECUTING 路线的订单,不进网络
-     *  - 车辆初始状态:若有冻结路线,使用末单 delivery_loc + planned_end;否则用 vehicle 表
-     *  - 可用车辆:IDLE(无冻结) + ON_DUTY(有冻结路线,可在末单后续接)
-     */
+    /**动态调度:考虑冻结集,仅在未冻结订单与可用车辆上求解.*/
     public ScheduleResult scheduleDynamic() throws Exception {
         // 1. 找冻结集:PLANNED/EXECUTING 路线上的所有订单
         List<Route> activeRoutes = routeDao.findByStatusIn(List.of("PLANNED", "EXECUTING"));
@@ -116,13 +99,13 @@ public class ScheduleService {
             }
         }
 
-        // 3. 冻结订单的 delivery_loc_id(用于车辆初始位置)
+        // 3. 冻结订单的 delivery_loc_id
         Map<Long, Order> frozenOrderMap = new HashMap<>();
         if (!frozenOrderIds.isEmpty()) {
             for (Order o : orderDao.findByIds(new ArrayList<>(frozenOrderIds))) frozenOrderMap.put(o.getId(), o);
         }
 
-        // 4. 加载未分配订单(UNASSIGNED),排除冻结订单(UNASSIGNED 本身不含已冻结的)
+        // 4. 加载未分配订单(UNASSIGNED),排除冻结订单
         List<OrderView> orderViews = loadUnassignedOrderViews();
 
         // 5. 加载可用车辆(IDLE + ON_DUTY),并用冻结尾部修正初始位置/时间
@@ -131,10 +114,7 @@ public class ScheduleService {
         return solveAndBuild(orderViews, vehicleViews);
     }
 
-    /**
-     * 读取当前已持久化的调度结果(PLANNED/EXECUTING 路线 + 未分配订单).
-     * 用于前端"查看当前调度"按钮,无需重新求解.
-     */
+    /**读取当前已持久化的调度结果(PLANNED/EXECUTING 路线 + 未分配订单).*/
     public ScheduleResult getCurrentSchedule() throws Exception {
         List<Route> activeRoutes = routeDao.findByStatusIn(List.of("PLANNED", "EXECUTING"));
         List<Long> routeIds = activeRoutes.stream().map(Route::getId).collect(Collectors.toList());
@@ -185,11 +165,6 @@ public class ScheduleService {
         boolean feasible = unassigned.isEmpty();
         return new ScheduleResult(totalIdle, totalRevenue, vehicleRoutes, unassigned, feasible);
     }
-
-    /**
-     * 完成单个订单:订单状态 → DONE,车辆位置 → 该单 delivery_loc,可用时刻 → planned_end.
-     * 若该单所在路线全部订单完成,路线 → COMPLETED,车辆 → IDLE(可重新调度).
-     */
     public void completeOrder(long vehicleId, long orderId) throws Exception {
         Order o = orderDao.findById(orderId);
         if (o == null) throw new IllegalArgumentException("order not found: " + orderId);
@@ -242,17 +217,12 @@ public class ScheduleService {
         }
     }
 
-    // ---------- 求解与结果构建 ----------
 
     private ScheduleResult solveAndBuild(List<OrderView> orderViews, List<VehicleView> vehicleViews) throws Exception {
         if (orderViews.isEmpty()) {
             return new ScheduleResult(0, 0, new HashMap<>(), new ArrayList<>(), true);
         }
-
-        // 阶段1: sinkPenaltyLj=0 (允许廉价续接)
         ScheduleResult result = solvePhase(orderViews, vehicleViews, 0);
-
-        // 阶段2: 若阶段1全部unassigned(SSP选了无车环),用sinkPenaltyLj=M重解(强制使用车辆)
         if (result.getUnassigned().size() == orderViews.size() && !orderViews.isEmpty()) {
             result = solvePhase(orderViews, vehicleViews, penaltyM);
         }
@@ -325,10 +295,7 @@ public class ScheduleService {
         return new ScheduleResult(totalIdle, totalRevenue, resultRoutes, sol.unassigned(), feasible);
     }
 
-    /**
-     * 持久化调度结果到 route / route_item 表,并更新订单状态与车辆状态.
-     * 动态模式下,新路线 version 递增(旧路线保留为历史).
-     */
+    /*保存结果*/
     public void persistSchedule(ScheduleResult result) throws Exception {
         persistSchedule(result, 1);
     }
@@ -416,10 +383,6 @@ public class ScheduleService {
         return out;
     }
 
-    /**
-     * 可用车辆(动态调度用):IDLE + ON_DUTY.
-     * ON_DUTY 车辆的初始位置/时间用冻结路线末单修正.
-     */
     private List<VehicleView> loadAvailableVehicleViews(
             Map<Long, FrozenTail> frozenTailByVehicle,
             Map<Long, Order> frozenOrderMap) throws Exception {
