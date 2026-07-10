@@ -137,7 +137,6 @@ void MapWidget::buildPaths() {
         QList<AnimWaypoint> path;
         AnimWaypoint wp;
 
-        //
         wp.locId = veh.curLocId;
         auto locIt = m_locById.constFind(veh.curLocId);
         if (locIt != m_locById.end()) {
@@ -148,7 +147,7 @@ void MapWidget::buildPaths() {
         wp.leaveTime = vr.route.first().plannedStart;
         path.append(wp);
 
-        // For each leg: pickup location (at plannedStart) then delivery location (at plannedEnd)
+        // For each leg
         for (const auto &leg : vr.route) {
             auto oIt = m_orderById.constFind(leg.orderId);
             if (oIt == m_orderById.end()) continue;

@@ -30,7 +30,7 @@ AnimationTab::AnimationTab(ApiClient *api, QWidget *parent)
     mainLayout->setContentsMargins(20, 18, 20, 18);
     mainLayout->setSpacing(14);
 
-    // ----- 页头 -----
+    //页头
     auto *headerLayout = new QHBoxLayout;
     headerLayout->setSpacing(12);
     auto *title = new QLabel("动画演示");
@@ -39,7 +39,7 @@ AnimationTab::AnimationTab(ApiClient *api, QWidget *parent)
     headerLayout->addStretch();
     mainLayout->addLayout(headerLayout);
 
-    // ----- 加载按钮 (独立行，醒目) -----
+    // 加载按钮 
     auto *loadRow = new QHBoxLayout;
     loadRow->setSpacing(8);
     m_loadBtn = new QPushButton("加载调度数据");
@@ -55,7 +55,7 @@ AnimationTab::AnimationTab(ApiClient *api, QWidget *parent)
     loadRow->addStretch();
     mainLayout->addLayout(loadRow);
 
-    // ----- 控制卡片 -----
+    //控制卡片
     auto *ctrlGroup = new QGroupBox("  播放控制  ");
     auto *ctrlLayout = new QHBoxLayout(ctrlGroup);
     ctrlLayout->setSpacing(8);
@@ -100,7 +100,7 @@ AnimationTab::AnimationTab(ApiClient *api, QWidget *parent)
 
     mainLayout->addWidget(ctrlGroup);
 
-    // ----- 进度条 -----
+    //进度条
     auto *progLayout = new QHBoxLayout;
     progLayout->setSpacing(10);
     auto *progLabel = new QLabel("进度");
@@ -112,7 +112,7 @@ AnimationTab::AnimationTab(ApiClient *api, QWidget *parent)
     progLayout->addWidget(m_progressSlider, 1);
     mainLayout->addLayout(progLayout);
 
-    // ----- 地图 -----
+    // 地图
     auto *mapLabel = new QLabel("车辆位置图");
     mapLabel->setProperty("cssClass", "sectionLabel");
     mainLayout->addWidget(mapLabel);

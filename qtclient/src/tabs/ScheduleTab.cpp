@@ -38,7 +38,7 @@ ScheduleTab::ScheduleTab(ApiClient *api, QWidget *parent)
     mainLayout->setContentsMargins(20, 18, 20, 18);
     mainLayout->setSpacing(14);
 
-    // ----- 页头 -----
+    //页头
     auto *headerLayout = new QHBoxLayout;
     headerLayout->setSpacing(12);
     auto *title = new QLabel("调度方案");
@@ -58,7 +58,7 @@ ScheduleTab::ScheduleTab(ApiClient *api, QWidget *parent)
     contentLayout->setContentsMargins(0, 0, 0, 0);
     contentLayout->setSpacing(14);
 
-    // ----- 操作按钮卡片 -----
+    //操作按钮卡片
     auto *actionGroup = new QGroupBox("  调度操作  ");
     auto *actionLayout = new QHBoxLayout(actionGroup);
     actionLayout->setSpacing(8);
@@ -88,7 +88,7 @@ ScheduleTab::ScheduleTab(ApiClient *api, QWidget *parent)
 
     contentLayout->addWidget(actionGroup);
 
-    // ----- 完成订单卡片 -----
+    //完成订单卡片
     auto *completeGroup = new QGroupBox("  订单完成  ");
     auto *completeLayout = new QHBoxLayout(completeGroup);
     completeLayout->setSpacing(8);
@@ -111,7 +111,7 @@ ScheduleTab::ScheduleTab(ApiClient *api, QWidget *parent)
     completeLayout->addStretch();
     contentLayout->addWidget(completeGroup);
 
-    // ----- 统计指标卡片 -----
+    // 统计指标卡片
     auto *statsGroup = new QGroupBox("  调度结果  ");
     auto *statsLayout = new QGridLayout(statsGroup);
     statsLayout->setSpacing(10);
@@ -154,7 +154,7 @@ ScheduleTab::ScheduleTab(ApiClient *api, QWidget *parent)
 
     contentLayout->addWidget(statsGroup);
 
-    // ----- 甘特图 (可滚动) -----
+    //甘特图
     auto *ganttLabel = new QLabel("调度甘特图");
     ganttLabel->setProperty("cssClass", "sectionLabel");
     contentLayout->addWidget(ganttLabel);
@@ -168,7 +168,7 @@ ScheduleTab::ScheduleTab(ApiClient *api, QWidget *parent)
     ganttScroll->setStyleSheet("QScrollArea { background: transparent; border: 1px solid #E7E5E0; border-radius: 8px; }");
     contentLayout->addWidget(ganttScroll, 3);
 
-    // ----- 未分配订单 (可滚动) -----
+    //未分配订单
     auto *unassignedLabel = new QLabel("未分配订单");
     unassignedLabel->setProperty("cssClass", "sectionLabel");
     contentLayout->addWidget(unassignedLabel);

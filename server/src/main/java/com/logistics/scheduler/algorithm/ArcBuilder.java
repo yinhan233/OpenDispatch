@@ -124,7 +124,7 @@ public class ArcBuilder {
             }
         }
 
-        // 7. R_j→T (j 被覆盖). 容量 1.
+        // 7. R_j→T.
         for (int j = 0; j < n; j++) {
             arcs.add(new Arc(firstR + j, T, 1, 0, Arc.Kind.ORDER_TO_SINK,
                     0, orders.get(j).getOrderId(), 0));

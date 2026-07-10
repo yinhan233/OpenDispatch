@@ -88,7 +88,7 @@ public class OrderApi {
                     ", valid: " + VALID_STATUSES);
             return;
         }
-        // 设为 UNASSIGNED 时解除分配关系(删除 route_item 中该订单的记录)
+        // 设为 UNASSIGNED 时解除分配关系
         if ("UNASSIGNED".equals(status)) {
             long vehicleId = routeItemDao.findVehicleByOrderId(id);
             routeItemDao.deleteByOrderId(id);

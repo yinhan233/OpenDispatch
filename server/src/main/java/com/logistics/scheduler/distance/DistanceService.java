@@ -9,10 +9,7 @@ import java.util.Optional;
 
 import com.logistics.scheduler.distance.MapApiClient.TravelInfo;
 
-/**
- * 距离服务:优先查缓存表,未命中则调用MapApiClient并落库.
- * 支持API失败时退化到欧氏估算.
- */
+/*距离服务*/
 public class DistanceService {
 
     private final DistanceDao distanceDao;

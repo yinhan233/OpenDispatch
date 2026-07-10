@@ -40,7 +40,7 @@ VehiclesTab::VehiclesTab(ApiClient *api, QWidget *parent)
     mainLayout->setContentsMargins(20, 18, 20, 18);
     mainLayout->setSpacing(14);
 
-    // ----- 页头 -----
+    //页头
     auto *headerLayout = new QHBoxLayout;
     headerLayout->setSpacing(12);
     auto *title = new QLabel("车辆管理");
@@ -49,7 +49,7 @@ VehiclesTab::VehiclesTab(ApiClient *api, QWidget *parent)
     headerLayout->addStretch();
     mainLayout->addLayout(headerLayout);
 
-    // ----- 表单卡片 (三列) -----
+    //表单卡片
     auto *formGroup = new QGroupBox("  新增车辆  ");
     formGroup->setStyleSheet(formGroup->styleSheet());
 
@@ -128,7 +128,7 @@ VehiclesTab::VehiclesTab(ApiClient *api, QWidget *parent)
 
     mainLayout->addWidget(formGroup);
 
-    // ----- 表格工具栏 -----
+    //表格工具栏
     auto *tableToolbar = new QHBoxLayout;
     tableToolbar->setSpacing(8);
 
@@ -167,7 +167,7 @@ VehiclesTab::VehiclesTab(ApiClient *api, QWidget *parent)
 
     mainLayout->addLayout(tableToolbar);
 
-    // ----- 表格 -----
+    //表格
     m_table = new QTableWidget;
     m_table->setColumnCount(11);
     m_table->setHorizontalHeaderLabels(

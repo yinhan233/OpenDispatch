@@ -58,10 +58,7 @@ public class LocationApi {
         }
     }
 
-    /**
-     * 地址解析: POST /api/locations/geocode  body={"address":"北京市海淀区..."}
-     * 返回 {"lng":116.xx, "lat":39.xx} 或 4xx/5xx + 错误信息.
-     */
+    /**地址解析**/
     public void geocode(Context ctx) throws Exception {
         Map<String, Object> body = ctx.bodyAsClass(Map.class);
         String address = (String) body.get("address");

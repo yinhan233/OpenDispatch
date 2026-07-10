@@ -1,10 +1,6 @@
 package com.logistics.scheduler.distance;
 
-/**
- * 默认实现:用经纬度欧氏距离÷预设平均速度估算.
- * 适用于教学/演示项目及API失败时的退化.
- * 速度默认 30 km/h(城市平均).距离用Haversine近似.
- */
+/*退化处理*/
 public class EuclideanMapClient implements MapApiClient {
 
     private static final double AVG_SPEED_MPS = 30_000.0 / 3600.0; // 30 km/h -> m/s

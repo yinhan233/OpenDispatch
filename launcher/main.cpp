@@ -28,7 +28,6 @@ static const int    STARTUP_TIMEOUT = 30000;
 static QProcess* g_backend = nullptr;
 static QFile*    g_logFile = nullptr;
 
-// ── Logging: writes to both stdout and a log file ──
 static void log(const QString& msg) {
     QString line = QString("[%1] %2").arg(QDateTime::currentDateTime().toString("HH:mm:ss.zzz"), msg);
     std::cout << line.toStdString() << std::endl;
@@ -125,11 +124,7 @@ int main(int argc, char* argv[]) {
         log("=== Launcher started ===");
     }
 
-    // Parse CLI flags
-    //   (default)      launch the native desktop client (logistics_ui)
-    //   --browser      open the web UI in the default browser instead
-    //   --desktop      force desktop client (same as default)
-    //   --no-browser   don't open browser (kept for backward compatibility)
+    // Parse CLI flag
     bool openBrowserAfterStart = false;
     bool launchDesktopClient   = true;
     for (int i = 1; i < argc; ++i) {
@@ -139,7 +134,7 @@ int main(int argc, char* argv[]) {
         if (arg == "--desktop")    { launchDesktopClient = true; openBrowserAfterStart = false; }
     }
 
-    // ── 1. Start backend if not running ──
+    //Start backend
     if (!isBackendRunning()) {
         log("Starting backend...");
         QString jarPath = QCoreApplication::applicationDirPath() + "/" + BACKEND_JAR;
@@ -176,9 +171,6 @@ int main(int argc, char* argv[]) {
             waited += 500;
         }
         if (waited >= STARTUP_TIMEOUT) {
-            // Non-fatal: the backend process may still be starting up.
-            // Launch the UI anyway so the user sees a window; the client
-            // retries API calls on its own once the backend is ready.
             log("WARNING: Backend readiness probe timed out (30s). Backend output:");
             log(QString::fromLocal8Bit(g_backend->readAllStandardOutput()));
             log("Continuing to launch UI; backend may still come up.");
@@ -189,7 +181,7 @@ int main(int argc, char* argv[]) {
         log("Backend already running.");
     }
 
-    // ── 2. Launch UI ──
+    //Launch UI
     QProcess* desktopClient = nullptr;
     if (launchDesktopClient) {
         log("Starting desktop client...");
@@ -218,8 +210,6 @@ int main(int argc, char* argv[]) {
     }
 
     int ret = app.exec();
-
-    // ── 3. Cleanup ──
     killBackend();
     log("Shutdown complete.");
     if (g_logFile) g_logFile->close();

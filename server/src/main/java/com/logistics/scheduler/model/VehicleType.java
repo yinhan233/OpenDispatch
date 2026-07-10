@@ -4,10 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 车辆类型预设:提供常见车型的默认载重、容积、速度.
- * 前端选择类型后自动填充,用户可手动修改.
- */
+/*车辆类*/
 public class VehicleType {
     private final String name;
     private final BigDecimal maxWeight;

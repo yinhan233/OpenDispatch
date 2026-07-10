@@ -34,7 +34,7 @@ OrdersTab::OrdersTab(ApiClient *api, QWidget *parent)
     mainLayout->setContentsMargins(20, 18, 20, 18);
     mainLayout->setSpacing(14);
 
-    // ----- 页头 -----
+    //页头
     auto *headerLayout = new QHBoxLayout;
     headerLayout->setSpacing(12);
     auto *title = new QLabel("订单管理");
@@ -43,7 +43,7 @@ OrdersTab::OrdersTab(ApiClient *api, QWidget *parent)
     headerLayout->addStretch();
     mainLayout->addLayout(headerLayout);
 
-    // ----- 表单卡片 (双列) -----
+    //表单卡片
     auto *formGroup = new QGroupBox("  新增订单  ");
 
     m_pickupLocEdit = new QLineEdit;
@@ -112,7 +112,7 @@ OrdersTab::OrdersTab(ApiClient *api, QWidget *parent)
 
     mainLayout->addWidget(formGroup);
 
-    // ----- 表格工具栏 -----
+    //表格工具栏
     auto *tableToolbar = new QHBoxLayout;
     tableToolbar->setSpacing(8);
 
@@ -152,7 +152,7 @@ OrdersTab::OrdersTab(ApiClient *api, QWidget *parent)
 
     mainLayout->addLayout(tableToolbar);
 
-    // ----- 表格 -----
+    //表格
     m_table = new QTableWidget;
     m_table->setColumnCount(10);
     m_table->setHorizontalHeaderLabels(
