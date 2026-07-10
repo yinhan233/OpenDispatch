@@ -31,3 +31,7 @@ nohup.out
 CMakeUserPresets.json
 compile_commands.json
 dist.7z
+# Documents
+TEST_REPORT.md
+ALGORITHM.md
+aqtinstall.log
